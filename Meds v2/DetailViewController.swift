@@ -7,29 +7,136 @@
 //
 
 import UIKit
+import CoreData
 
 class DetailViewController: UIViewController {
-
+    
+    @IBOutlet weak var medNameTextField: UITextField!
+    @IBOutlet weak var pillDosageTextField: UITextField!
+    @IBOutlet weak var pillsPerDayTextField: UITextField!
+    @IBOutlet weak var pillsPerBottleTextField: UITextField!
+    @IBOutlet weak var pillTakenInMorningTextField: UITextField!
+    @IBOutlet weak var pillTakenInEveningTextField: UITextField!
+    @IBOutlet weak var pillTakenAtBedtimeTextField: UITextField!
+    @IBOutlet weak var websiteURLTextField: UITextField!
+    @IBOutlet weak var notesTextView: UITextView!
+    @IBOutlet weak var dateStartedTextField: UITextField!
+    @IBOutlet weak var dateStoppedTextField: UITextField!
+    @IBOutlet weak var isCurrentlyTakenSwitch: UISwitch!
+    
+    @IBOutlet weak var rowNumberTextBox: UITextField!
+    // create array for holding coredata data (records)
+    var meds : [Med] = []
+    
+    // This is sent from List View Contorller
+    var medName: String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        // get the data from Core Data
+        getData()
 
-        // Do any additional setup after loading the view.
+        let med = meds[0]
+        
+        
+        
+        
+        
+        medNameTextField.text = med.medName!
+        pillDosageTextField.text = med.pillDosage
+        pillsPerDayTextField.text = med.pillsPerDay
+        pillsPerBottleTextField.text = med.pillsPerBottle
+        pillTakenInMorningTextField.text = med.pillsInMorning
+        pillTakenAtBedtimeTextField.text = med.pillsAtBedtime
+        pillTakenInEveningTextField.text = med.pillsInEvening
+        websiteURLTextField.text = med.webSiteURL
+        notesTextView.text = med.notes
+//        dateStartedTextField.text = String(med.dateStarted)
+//        dateStoppedTextField.text = String(med.dateStopped)
+        isCurrentlyTakenSwitch.isOn = med.isCurrentlyTaken
+        
+    }
+    
+
+    
+    // Core Data...
+    func getData() {
+
+
+        // =======================
+       var fetchedResultsController: NSFetchedResultsController = {
+            let fetchRequest = NSFetchRequest(entityName: "Meds")
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "medName", ascending: false)]
+            fetchRequest.predicate = NSPredicate(format: "medName != nil")
+            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+            let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+            return frc
+        }
+
+        
+        
+        
+        
+        
+        do {
+            meds = try frc.fetch(Med.fetchRequest())
+        }
+        catch {
+            print("Fetching Failed")
+        }
+    }
+    
+
+    
+    
+    
+    
+    @IBAction func saveButtonTapped(_ sender: UIButton) {
+        if (medNameTextField.text?.isEmpty)! {
+            print("IS EMPTY")
+            return
+        }
+        
+        // create delegate for Core Data
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        
+        // get ref to CoreData entity
+        let med = Med(context: context)
+        
+        // Now with entity, set coreData values from UI screen
+        med.medName = medNameTextField.text
+        med.pillDosage = pillDosageTextField.text
+        med.pillsPerDay = pillsPerDayTextField.text
+        med.pillsPerBottle = pillsPerBottleTextField.text
+        med.pillsInMorning = pillTakenInMorningTextField.text
+        med.pillsInEvening = pillTakenInEveningTextField.text
+        med.pillsAtBedtime = pillTakenAtBedtimeTextField.text
+        med.webSiteURL = websiteURLTextField.text
+        med.notes = notesTextView.text
+        med.isCurrentlyTaken = isCurrentlyTakenSwitch.isOn
+        //        med.dateStarted = NSDate(dateStartedTextField.text)
+        //        med.dateStopped = NSData(dateStoppedTextField.text)
+        
+        
+        // Save the data to coredatea
+        (UIApplication.shared.delegate as! AppDelegate).saveContext()
+        
+        // Go back to my list (first view, by popping off the current view)
+        navigationController!.popViewController(animated: true)
     }
 
+
+    @IBAction func cancelButtonTapped(_ sender: UIButton) {
+        // Go back to my list (first view, by popping off the current view)
+        navigationController!.popViewController(animated: true)
+    }
+    
+    
+    
+    // ==================================================================
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
+
